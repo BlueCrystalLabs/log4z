@@ -1,26 +1,26 @@
 ﻿/*
  * Log4z License
  * -----------
- * 
+ *
  * Log4z is licensed under the terms of the MIT license reproduced below.
  * This means that Log4z is free software and can be used for both academic
  * and commercial purposes at absolutely no cost.
- * 
- * 
+ *
+ *
  * ===============================================================================
- * 
+ *
  * Copyright (C) 2010-2015 YaweiZhang <yawei.zhang@foxmail.com>.
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
@@ -28,9 +28,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- * 
+ *
  * ===============================================================================
- * 
+ *
  * (end of COPYRIGHT)
  */
 
@@ -307,18 +307,18 @@ enum LogDataType
 //////////////////////////////////////////////////////////////////////////
 //! LoggerInfo
 //////////////////////////////////////////////////////////////////////////
-struct LoggerInfo 
+struct LoggerInfo
 {
     //! attribute
     std::string _key;   //logger key
     std::string _name;    // one logger one name.
     std::string _path;    //path for log file.
     int  _level;        //filter level
-    bool _display;        //display to screen 
+    bool _display;        //display to screen
     bool _outfile;        //output to file
-    bool _monthdir;        //create directory per month 
+    bool _monthdir;        //create directory per month
     unsigned int _limitsize; //limit file's size, unit Million byte.
-    bool _enable;        //logger is enable 
+    bool _enable;        //logger is enable
     bool _fileLine;        //enable/disable the log's suffix.(file name:line number)
 
     //! runtime info
@@ -327,16 +327,16 @@ struct LoggerInfo
     unsigned int _curWriteLen;  //current file length
     Log4zFileHandler    _handle;        //file handle.
 
-    
+
     LoggerInfo()
     {
-        _enable = false; 
-        _path = LOG4Z_DEFAULT_PATH; 
-        _level = LOG4Z_DEFAULT_LEVEL; 
-        _display = LOG4Z_DEFAULT_DISPLAY; 
+        _enable = false;
+        _path = LOG4Z_DEFAULT_PATH;
+        _level = LOG4Z_DEFAULT_LEVEL;
+        _display = LOG4Z_DEFAULT_DISPLAY;
         _outfile = LOG4Z_DEFAULT_OUTFILE;
 
-        _monthdir = LOG4Z_DEFAULT_MONTHDIR; 
+        _monthdir = LOG4Z_DEFAULT_MONTHDIR;
         _limitsize = LOG4Z_DEFAULT_LIMITSIZE;
         _fileLine = LOG4Z_DEFAULT_SHOWSUFFIX;
 
@@ -355,7 +355,7 @@ class LogerManager : public ThreadHelper, public ILog4zManager
 public:
     LogerManager();
     virtual ~LogerManager();
-    
+
     bool configFromStringImpl(std::string content, bool isUpdate);
     //! 读取配置文件并覆写
     virtual bool config(const char* configPath);
@@ -416,9 +416,9 @@ private:
     std::string _configFile;
 
     //! logger id manager, [logger name]:[logger id].
-    std::map<std::string, LoggerId> _ids; 
+    std::map<std::string, LoggerId> _ids;
     // the last used id of _loggers
-    LoggerId    _lastId; 
+    LoggerId    _lastId;
     LoggerInfo _loggers[LOG4Z_LOGGER_MAX];
 
     //! log queue
@@ -458,7 +458,7 @@ const std::string Log4zFileHandler::readContent()
     }
     char buf[BUFSIZ];
     size_t ret = 0;
-    do  
+    do
     {
         ret = fread(buf, sizeof(char), BUFSIZ, _file);
         content.append(buf, ret);
@@ -534,7 +534,7 @@ static void trimLogConfig(std::string &str, std::string extIgnore)
     int posEnd = 0;
 
     //trim utf8 file bom
-    if (str.length() >= 3 
+    if (str.length() >= 3
         && (unsigned char)str[0] == 0xef
         && (unsigned char)str[1] == 0xbb
         && (unsigned char)str[2] == 0xbf)
@@ -542,7 +542,7 @@ static void trimLogConfig(std::string &str, std::string extIgnore)
         posBegin = 3;
     }
 
-    //trim character 
+    //trim character
     for (int i = posBegin; i<length; i++)
     {
         bool bCheck = false;
@@ -978,6 +978,7 @@ SemHelper::~SemHelper()
         dispatch_release(_semid);
         _semid = NULL;
     }
+#elif defined(__EMSCRIPTEN__)
 #else
     if (_isCreate)
     {
@@ -1010,6 +1011,7 @@ bool SemHelper::create(int initcount)
     {
         return false;
     }
+#elif defined(__EMSCRIPTEN__)
 #else
     if (sem_init(&_semid, 0, initcount) != 0)
     {
@@ -1036,6 +1038,7 @@ bool SemHelper::wait(int timeout)
     {
         return false;
     }
+#elif defined(__EMSCRIPTEN__)
 #else
     if (timeout <= 0)
     {
@@ -1046,7 +1049,7 @@ bool SemHelper::wait(int timeout)
         struct timeval tm;
         gettimeofday(&tm, NULL);
         long long endtime = tm.tv_sec *1000 + tm.tv_usec/1000 + timeout;
-        do 
+        do
         {
             sleepMillisecond(50);
             int ret = sem_trywait(&_semid);
@@ -1082,6 +1085,8 @@ bool SemHelper::post()
     return ReleaseSemaphore(_hSem, 1, NULL) ? true : false;
 #elif defined(__APPLE__)
     return dispatch_semaphore_signal(_semid) == 0;
+#elif defined(__EMSCRIPTEN__)
+    return false;
 #else
     return (sem_post(&_semid) == 0);
 #endif
@@ -1102,6 +1107,7 @@ bool ThreadHelper::start()
         return false;
     }
     _hThreadID = ret;
+#elif defined(__EMSCRIPTEN__)
 #else
     int ret = pthread_create(&_phtreadID, NULL, threadProc, (void*)this);
     if (ret != 0)
@@ -1120,6 +1126,7 @@ bool ThreadHelper::wait()
     {
         return false;
     }
+#elif defined(__EMSCRIPTEN__)
 #else
     if (pthread_join(_phtreadID, NULL) != 0)
     {
@@ -1142,7 +1149,7 @@ LogerManager::LogerManager()
     _ullStatusTotalPopLog = 0;
     _ullStatusTotalWriteFileCount = 0;
     _ullStatusTotalWriteFileBytes = 0;
-    
+
     _pid = getProcessID();
     _proName = getProcessName();
     _loggers[LOG4Z_MAIN_LOGGER_ID]._enable = true;
@@ -1282,7 +1289,7 @@ bool LogerManager::configFromStringImpl(std::string content, bool isUpdate)
         return true;
     }
     _checksum = sum;
-    
+
 
     std::map<std::string, LoggerInfo> loggerMap;
     if (!parseConfigFromString(content, loggerMap))
@@ -1361,7 +1368,7 @@ LoggerId LogerManager::createLogger(const char* key)
     {
         return LOG4Z_INVALID_LOGGER_ID;
     }
-    
+
     std::string copyKey = key;
     trimLogConfig(copyKey);
 
@@ -1449,7 +1456,7 @@ bool LogerManager::pushLog(LogData * pLog, const char * file, int line)
             if (pNameBegin == file) { break; }
             pNameBegin--;
         } while (true);
-        zsummer::log4z::Log4zStream ss(pLog->_content + pLog->_contentLen, LOG4Z_LOG_BUF_SIZE - pLog->_contentLen); 
+        zsummer::log4z::Log4zStream ss(pLog->_content + pLog->_contentLen, LOG4Z_LOG_BUF_SIZE - pLog->_contentLen);
         ss << " " << pNameBegin << ":" << line;
         pLog->_contentLen += ss.getCurrentLen();
     }
@@ -1495,7 +1502,7 @@ bool LogerManager::pushLog(LogData * pLog, const char * file, int line)
         freeLogData(pLog);
         return true;
     }
-    
+
     AutoLock l(_logLock);
     _logs.push_back(pLog);
     _ullStatusTotalPushLog ++;
@@ -1518,7 +1525,7 @@ bool LogerManager::hotChange(LoggerId id, LogDataType ldt, int num, const std::s
 {
     if (id <0 || id > _lastId) return false;
     if (text.length() >= LOG4Z_LOG_BUF_SIZE) return false;
-    
+
     LogData * pLog = makeLogData(id, LOG4Z_DEFAULT_LEVEL);
     pLog->_id = id;
     pLog->_type = ldt;
@@ -1544,17 +1551,17 @@ bool LogerManager::onHotChange(LoggerInfo & logger, LogDataType ldt, int num, co
     return true;
 }
 
-bool LogerManager::enableLogger(LoggerId id, bool enable) 
+bool LogerManager::enableLogger(LoggerId id, bool enable)
 {
     if (id < 0 || id > _lastId) return false;
     if (enable) _loggers[id]._enable = true;
-    return hotChange(id, LDT_ENABLE_LOGGER, enable, ""); 
+    return hotChange(id, LDT_ENABLE_LOGGER, enable, "");
 }
-bool LogerManager::setLoggerLevel(LoggerId id, int level) 
-{ 
+bool LogerManager::setLoggerLevel(LoggerId id, int level)
+{
     if (id < 0 || id > _lastId) return false;
     if (level < _loggers[id]._level) _loggers[id]._level = level;
-    return hotChange(id, LDT_SET_LOGGER_LEVEL, level, ""); 
+    return hotChange(id, LDT_SET_LOGGER_LEVEL, level, "");
 }
 bool LogerManager::setLoggerDisplay(LoggerId id, bool enable) { return hotChange(id, LDT_SET_LOGGER_DISPLAY, enable, ""); }
 bool LogerManager::setLoggerOutFile(LoggerId id, bool enable) { return hotChange(id, LDT_SET_LOGGER_OUTFILE, enable, ""); }
@@ -1570,10 +1577,10 @@ bool LogerManager::setLoggerLimitsize(LoggerId id, unsigned int limitsize)
 bool LogerManager::setLoggerName(LoggerId id, const char * name)
 {
     if (id <0 || id > _lastId) return false;
-    //the name by main logger is the process name and it's can't change. 
-//    if (id == LOG4Z_MAIN_LOGGER_ID) return false; 
-    
-    if (name == NULL || strlen(name) == 0) 
+    //the name by main logger is the process name and it's can't change.
+//    if (id == LOG4Z_MAIN_LOGGER_ID) return false;
+
+    if (name == NULL || strlen(name) == 0)
     {
         return false;
     }
@@ -1682,7 +1689,7 @@ bool LogerManager::openLogger(LogData * pLog)
         name = pLogger->_name;
         path = pLogger->_path;
         _hotLock.unLock();
-        
+
         char buf[100] = { 0 };
         if (pLogger->_monthdir)
         {
@@ -1782,11 +1789,11 @@ void LogerManager::run()
                 freeLogData(pLog);
                 continue;
             }
-            
+
             //
             _ullStatusTotalPopLog ++;
             //discard
-            
+
             if (!curLogger._enable || pLog->_level <curLogger._level  )
             {
                 freeLogData(pLog);
@@ -1846,7 +1853,7 @@ void LogerManager::run()
             }
         }
 
-        //! delay. 
+        //! delay.
         sleepMillisecond(100);
 
         //! quit
@@ -1854,13 +1861,13 @@ void LogerManager::run()
         {
             break;
         }
-        
+
         if (_hotUpdateInterval != 0 && time(NULL) - lastCheckUpdate > _hotUpdateInterval)
         {
             updateConfig();
             lastCheckUpdate = time(NULL);
         }
-        
+
 
 
     }
