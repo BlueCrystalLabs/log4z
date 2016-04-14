@@ -79,6 +79,10 @@
 #include <libproc.h>
 #endif
 
+#ifdef __ANDROID__
+#include <android/log.h>
+#endif
+
 
 
 _ZSUMMER_BEGIN
@@ -1465,8 +1469,12 @@ bool LogerManager::pushLog(LogData * pLog, const char * file, int line)
 
     if (LOG4Z_ALL_DEBUGOUTPUT_DISPLAY && LOG4Z_ALL_SYNCHRONOUS_OUTPUT)
     {
-#ifdef WIN32
+#if defined(WIN32)
         OutputDebugStringA(pLog->_content);
+#elif defined(__APPLE__)
+        printf("%s", pLog->_content);
+#elif defined(__ANDROID__)
+        __android_log_print(ANDROID_LOG_INFO, "BX_STRINGIZE(BCL_SKU)", "%s", pLog->_content);
 #endif
     }
 
@@ -1792,8 +1800,12 @@ void LogerManager::run()
             }
             if (LOG4Z_ALL_DEBUGOUTPUT_DISPLAY && !LOG4Z_ALL_SYNCHRONOUS_OUTPUT)
             {
-#ifdef WIN32
+#if defined(WIN32)
                 OutputDebugStringA(pLog->_content);
+#elif defined(__APPLE__)
+                printf("%s", pLog->_content);
+#elif defined(__ANDROID__)
+                __android_log_print(ANDROID_LOG_INFO, "BX_STRINGIZE(BCL_SKU)", "%s", pLog->_content);
 #endif
             }
 
