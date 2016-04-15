@@ -214,6 +214,11 @@ const int LOG4Z_MAIN_LOGGER_ID = 0;
 //! the main logger name. DO NOT TOUCH
 const char*const LOG4Z_MAIN_LOGGER_KEY = "Main";
 
+#if !defined(LOG4Z_CONFIG_FORMAT_INPUT_ENABLE)
+#define LOG4Z_CONFIG_FORMAT_INPUT_ENABLE 1
+#endif
+
+#if LOG4Z_CONFIG_FORMAT_INPUT_ENABLE
 //! check VC VERSION. DO NOT TOUCH
 //! format micro cannot support VC6 or VS2003, please use stream input log, like LOGI, LOGD, LOG_DEBUG, LOG_STREAM ...
 #if _MSC_VER >= 1400 //MSVC >= VS2005
@@ -222,6 +227,7 @@ const char*const LOG4Z_MAIN_LOGGER_KEY = "Main";
 
 #ifndef WIN32
 #define LOG4Z_FORMAT_INPUT_ENABLE
+#endif
 #endif
 
 //! LOG Level

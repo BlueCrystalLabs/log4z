@@ -1478,7 +1478,7 @@ bool LogerManager::pushLog(LogData * pLog, const char * file, int line)
     {
 #if defined(WIN32)
         OutputDebugStringA(pLog->_content);
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__EMSCRIPTEN__)
         printf("%s", pLog->_content);
 #elif defined(__ANDROID__)
         __android_log_print(ANDROID_LOG_INFO, "BX_STRINGIZE(BCL_SKU)", "%s", pLog->_content);
