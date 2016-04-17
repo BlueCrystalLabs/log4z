@@ -76,7 +76,11 @@
 
 #ifdef __APPLE__
 #include <dispatch/dispatch.h>
+
+#if TARGET_IPHONE_SIMULATOR
 #include <libproc.h>
+#endif
+
 #endif
 
 #ifdef __ANDROID__
@@ -879,9 +883,14 @@ std::string getProcessName()
 
 #elif defined(__APPLE__)
 
+#if TARGET_IPHONE_SIMULATOR
     proc_name(getpid(), buf, 260);
     name = buf;
-    return name;;
+    return name;
+#else
+    return "dummy";
+#endif
+    
 #else
     sprintf(buf, "/proc/%d/cmdline", (int)getpid());
     Log4zFileHandler i;
